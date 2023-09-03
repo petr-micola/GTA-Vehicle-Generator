@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>GTA 5 Random Vehicle Generator</title>
+    <link rel="stylesheet" type="text/css" href="static/styles.css">
+</head>
+
+<body>
+    <h1>GTA 5 Random Vehicle Generator</h1>
+
+    <form action="/generate" method="POST" onsubmit="event.preventDefault(); submitForm();">
+        <div>
+            <label>Vehicle Classes:</label><br>
+
+            {% for vehicle_class in vehicle_classes %}
+            <input type="checkbox" name="vehicle_class" value="{{ vehicle_class }}" checked>
+            <span class="capitalize">{{ vehicle_class }}</span><br>
+            {% endfor %}
+            <button type="button" onclick="toggleCheckboxes()">Toggle Checkboxes</button>
+        </div>
+        <div>
+            <label>Minimum Price:</label><br>
+            <input type="number" name="min_price" step="1" min="{{ lowest_price }}" max="{{ highest_price }}"
+                value="{{ lowest_price }}"><br>
+
+            <label>Maximum Price:</label><br>
+            <input type="number" name="max_price" step="1" min="{{ lowest_price }}" max="{{ highest_price }}"
+                value="{{ highest_price }}"><br>
+        </div>
+        <button type="submit">Generate Random Vehicle</button>
+    </form>
+
+    <div id="result">
+        <h2>Generated Vehicle:</h2>
+        <img id="result-image" src="" alt="" style="max-width: 300px; max-height: 200px;"><br>
+        <p>Name: <span id="result-name" class="capitalize"></span></p>
+        <p>Class: <span id="result-class" class="capitalize"></span></p>
+        <p>Price: $<span id="result-price"></span></p>
+        <!-- Add more fields as needed -->
+    </div>
+
+
+
+
+    <style>
+        .capitalize {
+            text-transform: capitalize;
+        }
+    </style>
+
+
+    <script>
+        function toggleCheckboxes() {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            var checked = true;
+
+            checkboxes.forEach(function (checkbox) {
+                if (!checkbox.checked) {
+                    checked = false;
+                    return; // Exit the loop if any checkbox is unchecked
+                }
+            });
+
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = !checked;
+            });
+        }
+
+        // Function to update the result section with vehicle data
+        function updateResult(vehicleData) {
+            document.getElementById('result-class').textContent = vehicleData.class;
+            document.getElementById('result-name').textContent = vehicleData.name;
+            document.getElementById('result-price').textContent = vehicleData.price;
+
+            // Update the image
+            var imageElement = document.getElementById('result-image');
+            imageElement.src = vehicleData.image_url;
+            imageElement.alt = vehicleData.name + ' Image';
+
+            // Update more fields if needed
+        }
+
+        // Function to reset the result section
+        function resetResult() {
+            document.getElementById('result-class').textContent = '';
+            document.getElementById('result-name').textContent = '';
+            document.getElementById('result-price').textContent = '';
+            var imageElement = document.getElementById('result-image');
+            imageElement.src = '';
+            imageElement.alt = '';
+            // Reset more fields if needed
+        }
+
+        // Function to handle form submission
+        function submitForm() {
+            resetResult();
+            // Your code to submit the form and handle the response here
+            fetch('/generate', {
+                method: 'POST',
+                body: new FormData(document.querySelector('form')),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        updateResult(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+
+</body>
+
+</html>
